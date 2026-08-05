@@ -1,18 +1,52 @@
 // app.js
-// Phase 1: uses the browser's built-in STT and TTS.
-// LATER: these two jobs will move into their own swappable modules
-// (offline Whisper / Piper options) — but the rest of this app won't
-// need to change when that happens, since it just calls a "listen()"
-// and "speak()" function either way.
+// Phase 1: browser-native STT and TTS.
+// LATER: these two responsibilities move into swappable modules
+// (offline Whisper / Piper) — the rest of the app won't need to change,
+// since it only ever calls listen()/speak()-equivalent hooks below.
 
 const BACKEND_URL = "http://localhost:3000/chat";
 
 const micBtn = document.getElementById("micBtn");
-const orb = document.getElementById("orb");
-const statusEl = document.getElementById("status");
+const dockLabel = document.getElementById("dockLabel");
+const core = document.getElementById("core");
+const coreStatus = document.getElementById("coreStatus");
+const hint = document.getElementById("hint");
 const chatLog = document.getElementById("chatLog");
+const logEmpty = document.getElementById("logEmpty");
+const logCount = document.getElementById("logCount");
+const clockEl = document.getElementById("clock");
+const connIndicator = document.getElementById("connIndicator");
+const connLabel = document.getElementById("connLabel");
 
-// ---- Speech-to-Text setup ----
+let entryCount = 0;
+
+// ---------- clock ----------
+function tickClock() {
+  const now = new Date();
+  clockEl.textContent = now.toLocaleTimeString("en-GB", { hour12: false });
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ---------- connectivity indicator ----------
+function updateConnIndicator() {
+  const online = navigator.onLine;
+  connIndicator.classList.toggle("offline", !online);
+  connLabel.textContent = online ? "ONLINE" : "OFFLINE";
+}
+updateConnIndicator();
+window.addEventListener("online", updateConnIndicator);
+window.addEventListener("offline", updateConnIndicator);
+
+// ---------- core state machine ----------
+// states: idle, listening, thinking, speaking, error
+function setState(state, statusText, hintText) {
+  core.dataset.state = state;
+  coreStatus.textContent = statusText;
+  if (hintText !== undefined) hint.textContent = hintText;
+}
+
+// ---------- Speech-to-Text setup ----------
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isListening = false;
@@ -25,19 +59,19 @@ if (SpeechRecognition) {
 
   recognition.onstart = () => {
     isListening = true;
-    orb.classList.add("listening");
     micBtn.classList.add("active");
-    statusEl.textContent = "Listening...";
+    dockLabel.textContent = "LISTENING";
+    setState("listening", "LISTENING", "Speak now...");
   };
 
   recognition.onend = () => {
     isListening = false;
-    orb.classList.remove("listening");
     micBtn.classList.remove("active");
+    dockLabel.textContent = "TAP TO SPEAK";
   };
 
   recognition.onerror = (event) => {
-    statusEl.textContent = `Mic error: ${event.error}`;
+    setState("error", "MIC ERROR", `Microphone error: ${event.error}`);
   };
 
   recognition.onresult = (event) => {
@@ -45,7 +79,7 @@ if (SpeechRecognition) {
     handleUserSpeech(transcript);
   };
 } else {
-  statusEl.textContent = "Speech recognition not supported in this browser. Try Chrome.";
+  hint.textContent = "Speech recognition isn't supported in this browser. Try Chrome.";
   micBtn.disabled = true;
 }
 
@@ -58,10 +92,11 @@ micBtn.addEventListener("click", () => {
   }
 });
 
-// ---- Handle full pipeline: STT result -> backend -> TTS ----
+// ---------- full pipeline: STT result -> backend -> TTS ----------
 async function handleUserSpeech(text) {
   addToLog("user", text);
-  statusEl.textContent = "Thinking...";
+  setState("thinking", "PROCESSING", "Thinking...");
+  dockLabel.textContent = "PROCESSING";
 
   try {
     const response = await fetch(BACKEND_URL, {
@@ -70,21 +105,25 @@ async function handleUserSpeech(text) {
       body: JSON.stringify({ text }),
     });
 
+    if (!response.ok) throw new Error(`Server responded ${response.status}`);
+
     const data = await response.json();
-    const reply = data.reply || "I didn't get a response.";
+    const reply = data.reply || "No response received.";
 
     addToLog("ai", reply);
     speak(reply);
   } catch (err) {
     console.error(err);
-    statusEl.textContent = "Couldn't reach the backend. Is server.js running?";
+    addToLog("system", "Connection lost — check that the local server is running.");
+    setState("error", "OFFLINE", "Couldn't reach the backend. Is server.js running?");
+    dockLabel.textContent = "TAP TO SPEAK";
   }
 }
 
-// ---- Text-to-Speech ----
+// ---------- Text-to-Speech ----------
 function speak(text) {
   if (!window.speechSynthesis) {
-    statusEl.textContent = "Speech synthesis not supported in this browser.";
+    setState("error", "TTS ERROR", "Speech synthesis isn't supported in this browser.");
     return;
   }
 
@@ -93,32 +132,40 @@ function speak(text) {
   utterance.pitch = 1;
 
   utterance.onstart = () => {
-    orb.classList.add("speaking");
-    statusEl.textContent = "Speaking...";
+    dockLabel.textContent = "RESPONDING";
+    setState("speaking", "RESPONDING", "Speaking...");
   };
 
   utterance.onend = () => {
-    orb.classList.remove("speaking");
-    statusEl.textContent = "Tap the mic to talk";
+    dockLabel.textContent = "TAP TO SPEAK";
+    setState("idle", "STANDBY", "Tap the control below to speak");
   };
 
   window.speechSynthesis.speak(utterance);
 }
 
-// ---- Chat log UI ----
+// ---------- transcript log UI ----------
 function addToLog(role, text) {
+  if (logEmpty) logEmpty.remove();
+
   const entry = document.createElement("div");
   entry.className = `entry ${role}`;
 
-  const label = document.createElement("span");
-  label.className = "label";
-  label.textContent = role === "user" ? "YOU" : "LOTUS";
+  const meta = document.createElement("div");
+  meta.className = "entry-meta";
+  const label = role === "user" ? "YOU" : role === "ai" ? "LOTUS" : "SYSTEM";
+  const time = new Date().toLocaleTimeString("en-GB", { hour12: false });
+  meta.textContent = `${label} · ${time}`;
 
   const body = document.createElement("div");
+  body.className = "entry-text";
   body.textContent = text;
 
-  entry.appendChild(label);
+  entry.appendChild(meta);
   entry.appendChild(body);
   chatLog.appendChild(entry);
   chatLog.scrollTop = chatLog.scrollHeight;
+
+  entryCount += 1;
+  logCount.textContent = `${entryCount} ${entryCount === 1 ? "entry" : "entries"}`;
 }

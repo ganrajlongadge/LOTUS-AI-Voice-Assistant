@@ -1,28 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LOTUS</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LOTUS — System Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">LOTUS</h1>
-    <p class="subtitle">Your personal AI</p>
 
-    <div class="orb" id="orb"></div>
+  <!-- corner frame -->
+  <div class="frame" aria-hidden="true">
+    <span class="corner corner-tl"></span>
+    <span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span>
+    <span class="corner corner-br"></span>
+  </div>
 
-    <p class="status" id="status">Tap the mic to talk</p>
+  <div class="console">
 
-    <button id="micBtn" class="mic-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-        <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
-        <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V21H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/>
-      </svg>
-    </button>
+    <!-- header -->
+    <header class="bar">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <div class="brand-text">
+          <h1>LOTUS</h1>
+          <p class="eyebrow">Personal AI · System Console</p>
+        </div>
+      </div>
+      <div class="bar-right">
+        <span class="clock" id="clock">00:00:00</span>
+        <span class="conn" id="connIndicator">
+          <span class="conn-dot" id="connDot"></span>
+          <span id="connLabel">ONLINE</span>
+        </span>
+      </div>
+    </header>
 
-    <div class="chat-log" id="chatLog"></div>
+    <!-- main stage -->
+    <main class="stage">
+
+      <div class="core-wrap">
+        <div class="core" id="core" data-state="idle">
+          <svg class="core-svg" viewBox="0 0 240 240" aria-hidden="true">
+            <circle class="ring ring-ticks" cx="120" cy="120" r="112" />
+            <circle class="ring ring-mid" cx="120" cy="120" r="90" />
+            <circle class="ring ring-inner" cx="120" cy="120" r="70" />
+            <circle class="core-glow" cx="120" cy="120" r="46" />
+          </svg>
+          <div class="core-center">
+            <span class="core-status" id="coreStatus">STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint" id="hint">Tap the control below to speak</p>
+
+      <section class="log-panel">
+        <div class="log-head">
+          <span>Transcript Log</span>
+          <span class="log-head-sub" id="logCount">0 entries</span>
+        </div>
+        <div class="log-body" id="chatLog">
+          <p class="log-empty" id="logEmpty">No transmissions yet. Say something to begin.</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- control dock -->
+    <footer class="dock">
+      <button id="micBtn" class="mic-btn" aria-label="Toggle voice input">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+          <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
+          <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V21H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-3.08A7 7 0 0 0 19 11z"/>
+        </svg>
+      </button>
+      <span class="dock-label" id="dockLabel">TAP TO SPEAK</span>
+    </footer>
+
   </div>
 
   <script src="app.js"></script>
