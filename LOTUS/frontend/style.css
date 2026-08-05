@@ -1,0 +1,125 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: radial-gradient(circle at center, #0a1420 0%, #050a10 100%);
+  color: #d6f0ff;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  text-align: center;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+}
+
+.title {
+  font-size: 2.5rem;
+  letter-spacing: 0.3em;
+  color: #4fd8ff;
+  text-shadow: 0 0 20px rgba(79, 216, 255, 0.6);
+}
+
+.subtitle {
+  color: #6a8ba3;
+  margin-top: 6px;
+  margin-bottom: 40px;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+}
+
+.orb {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1fd0ff 0%, #0a5f80 70%, transparent 100%);
+  box-shadow: 0 0 40px rgba(31, 208, 255, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.orb.listening {
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+.orb.speaking {
+  animation: pulse 0.6s infinite ease-in-out;
+  background: radial-gradient(circle, #ffb84f 0%, #804a0a 70%, transparent 100%);
+  box-shadow: 0 0 40px rgba(255, 184, 79, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.status {
+  color: #8fb8cf;
+  margin-bottom: 24px;
+  min-height: 1.2em;
+  font-size: 0.95rem;
+}
+
+.mic-btn {
+  background: #103040;
+  border: 2px solid #2fd0ff;
+  color: #4fd8ff;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.mic-btn:hover {
+  background: #16465e;
+  transform: scale(1.05);
+}
+
+.mic-btn.active {
+  background: #2fd0ff;
+  color: #06202c;
+}
+
+.chat-log {
+  margin-top: 32px;
+  text-align: left;
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.chat-log .entry {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chat-log .entry.user {
+  border-left: 3px solid #4fd8ff;
+}
+
+.chat-log .entry.ai {
+  border-left: 3px solid #ffb84f;
+}
+
+.chat-log .label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: #6a8ba3;
+  display: block;
+  margin-bottom: 4px;
+}
